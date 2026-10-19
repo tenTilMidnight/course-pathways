@@ -6,15 +6,18 @@
     <meta name="theme-color" content="#941120" />
     <meta name="description" content="Find courses and explore student pathways at Carnegie Mellon University." />
     <title>Search · Course Pathways</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/src/styles.css" />
-    <script type="module" src="/src/app.js"></script>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="./src/results.css" />
+    <link rel="stylesheet" href="./src/pathway-detail.css" />
+    <link rel="stylesheet" href="./src/course-detail.css" />
+    <script type="module" src="./src/app.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#search-input">Skip to search</a>
     <div class="page-shell">
       <header class="site-header">
-        <a class="wordmark" href="/" aria-label="Course Pathways home">
+        <a class="wordmark" href="./" aria-label="Course Pathways home">
           <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 25V18C7 12 25 20 25 8M7 25C7 19 16 20 16 11V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="7" cy="25" r="3" fill="currentColor"/><circle cx="16" cy="6" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="25" cy="6" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
           <span>Course Pathways</span>
         </a>
@@ -51,21 +54,44 @@
             </form>
 
             <div class="examples" role="group" aria-label="Suggested searches">
-              <div id="example-buttons" class="example-buttons"></div>
-              <button type="button" id="refresh-examples" class="refresh-examples" aria-label="More suggestions" title="More suggestions">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 8A8 8 0 0 0 5.5 6L3 9M3 9V4M3 9H8M5 16A8 8 0 0 0 18.5 18L21 15M21 15V20M21 15H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
+              <button type="button" id="suggestions-toggle" class="suggestions-toggle" aria-expanded="false" aria-controls="suggestions-content">Show suggestions</button>
+              <div id="suggestions-content" class="suggestions-content" hidden>
+                <div id="example-buttons" class="example-buttons"></div>
+                <button type="button" id="refresh-examples" class="refresh-examples" aria-label="More suggestions" title="More suggestions">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 8A8 8 0 0 0 5.5 6L3 9M3 9V4M3 9H8M5 16A8 8 0 0 0 18.5 18L21 15M21 15V20M21 15H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
             </div>
 
-            <section id="search-summary" class="search-summary" aria-labelledby="summary-heading" hidden>
-              <div class="summary-topline"><span class="summary-check" aria-hidden="true">✓</span><h2 id="summary-heading">Your search</h2><span id="summary-mode" class="summary-mode"></span></div>
-              <p id="summary-query" class="summary-query"></p>
-              <p class="summary-campus" data-university-name>Carnegie Mellon University</p>
-              <div class="summary-bottom"><p id="summary-description">Search saved. Results not available yet.</p><button type="button" id="back-to-search">Back to search</button></div>
-            </section>
           </div>
 
         </section>
+        <section id="results-region" class="results-region" aria-label="Search results" aria-busy="true" hidden>
+          <div class="results-toolbar">
+            <div class="results-meta">
+              <span id="results-count" role="status">Searching…</span>
+              <span class="demo-label" title="Fictional students and illustrative courses, not official university records.">Demo data</span>
+            </div>
+            <div id="results-controls" class="results-controls" hidden>
+              <button id="clear-result-filters" class="text-button" type="button" hidden>Clear filters</button>
+              <details id="filters-panel" class="filters-panel">
+                <summary><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 6H17M3 14H17M7 3V9M13 11V17" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>Filters<span id="filter-count"></span><svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></summary>
+                <div class="filter-popover"><div id="filter-fields"></div><button id="reset-filters" class="text-button" type="button" hidden>Clear filters</button></div>
+              </details>
+              <label class="sort-control"><span class="sr-only">Sort by</span><select id="sort-select" aria-label="Sort by"></select></label>
+            </div>
+          </div>
+          <div id="results-status" class="results-status" role="status" hidden></div>
+          <div id="results-grid" class="results-grid"></div>
+          <div class="results-pagination"><p id="results-progress" hidden></p><button id="load-more" class="secondary-button" type="button" hidden>Show more</button></div>
+        </section>
+        <section id="detail-preview" class="detail-preview" aria-busy="true" hidden>
+          <p id="detail-kind" class="detail-kind">Detail preview</p>
+          <h1 id="detail-heading">Loading…</h1>
+          <p id="detail-message"></p>
+          <a id="detail-return" class="text-button" href="./">Back to search results</a>
+        </section>
+        <section id="card-designs" class="card-designs" hidden></section>
       </main>
 
     </div>

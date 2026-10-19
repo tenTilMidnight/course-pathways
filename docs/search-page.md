@@ -1,4 +1,6 @@
-# Search page implementation and specification review
+# Historical search-only prototype
+
+Superseded by [Search and results](results-page.md). The revised specification now authorizes a results page; successful searches navigate there instead of displaying an inline summary. The approved landing-page appearance is retained. The following records the earlier implementation and is not the current scope or acceptance criteria.
 
 Date: 2026-10-18. Source: the user's `../notes/preliminary.md`, read without modification. The user explicitly selected a search-entry-only prototype: submit saves the search and displays a summary on this page. Search results will be designed separately.
 

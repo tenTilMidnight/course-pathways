@@ -10,6 +10,8 @@ Treat historical conversations, their attachments, prior AI suggestions, and old
 
 The sibling `../notes/` directory contains the user's notes and product specifications. Read these files as needed, but do not edit, create, delete, rename, move, or reformat anything in `notes/` unless the user explicitly requests that specific change. Propose corrections in the conversation or in repository documentation instead. This rule applies to every file under `notes/`, including `preliminary.md`.
 
+Whenever the user authorizes additions or edits to their notes, enclose all assistant-written content in Chinese brackets `【】` so it remains visibly distinguishable from the user's text. Preserve the user's other text. Authorization for one document or section does not authorize edits to other notes.
+
 ## Implementation scope
 
 Implement only the pages and capabilities currently authorized by the user. An unfilled or undecided section in a note is not permission to invent additional pages. Keep the interface in English. Keep university-specific copy, examples, and branding configurable.

@@ -1,0 +1,56 @@
+# Search and results prototype
+
+Updated through 2026-10-19. See `pathway-detail.md` and `course-detail.md` for the implemented detail pages. Search opens a results page in the same tab; the approved suggestion selection colors remain unchanged.
+
+## Routes and behavior
+
+- `/`: Search. `mode=courses` optionally starts in course mode. The input starts empty; university- and mode-scoped history persists locally with a six-record limit. Suggestions start hidden behind Show suggestions. Opening it reveals three suggestions and a refresh button on the same row; Hide suggestions collapses them without clearing the input. Narrow screens scroll only the suggestions horizontally, keeping the toggle and refresh button visible without wrapping or overflowing the page. Suggestions fill without submitting; More suggestions cycles through local prompts without repeating the immediately preceding batch. Returning through the page cache resets the disclosure to hidden.
+- `/?view=results&mode=pathways&q=Information+Systems`: Results. Search submission uses normal same-tab document navigation, saves history, and resets filters/sorting. The top search control retains both modes and history. Switching mode on results submits the current nonempty input for the new mode.
+- Filters and sorting update results in place, using `history.replaceState` to keep the URL reloadable and shareable. They do not overwrite an unsubmitted edit in the search input or add history entries. Only submitted search text appears in the result URL.
+- Browser Back to the landing page clears input, including when restored from the browser's page cache. The wordmark links to the search landing page. Returning to a prior results page retains its submitted query and URL-based filters.
+- Clicking a pathway card flips it to course highlights; clicking again or pressing Escape returns to the profile. Each face contains its own top-right View full path text-and-arrow link, so the whole control rotates with the face. Only the active face is interactive. The link opens the implemented pathway detail in a new tab without flipping the card. Course result cards link to the implemented Course Detail. All detail links use `target="_blank"` and `rel="noopener noreferrer"` with safe local return links. A nonblocking first-session hand hint introduces the pathway flip, pulses twice and automatically disappears; interactions dismiss it immediately and reduced motion suppresses its animation.
+- `/?view=card-designs` previews three major-first arrangements: Grouped, Direction, and Compact. The profile selector covers an illustrative graduate, current student and dual degree. Main results use Grouped. All surfaces are white; shading and texture controls are removed.
+- The old year/cohort layouts and both `cohort` and `layout` parameters are removed. Existing `view=cohort-designs` links render the current preview. Legacy tone parameters are ignored.
+
+## Search and data boundary
+
+`src/demo-catalog.js` contains 25 fictional pathways and 64 illustrative courses for CMU, including the expanded `demo-curriculum.js` fixtures used for four/five-course semesters. No real student data or verified university course claims are included. The page displays Demo data. Course identifiers, units, roles, and course previews are fixtures only. Not every suggestion has matching demo results.
+
+Direction/skill `tags` remain manually authored search metadata. They are hidden on both pathway and course cards because displaying them could imply unsupported student skills or course outcomes. No replacement badge is invented. Company is optional self-reported profile data, formatted as Software Engineer @ Amazon when present and searchable alongside the existing tags. All companies in these fixtures belong to fictional profiles, not verified employment claims.
+
+The card front is aligned to the upper left with the primary major first and career role/optional company immediately below. Both use 20px type; career is brand red. Academic information follows both lines, in 15px type. Optional fields read concentration in …, double major in …, dual degree in …, minor in …, or minors in …, without colons. They are omitted when absent and participate in search. Their demo values illustrate the data structure rather than verified university credentials. An inline Exploring cue distinguishes a current student's direction when no company is supplied. Semester/course counts are removed. Current standing is explicitly stored as `studentYear`, mapped to Freshman, Sophomore, Junior, Senior, or Fifth-year; current students do not display graduation years. Alumni show their graduation class.
+
+Standing text is 14px; the detail arrow is restored to 18px, while View full path stays smaller. The previous 400px minimum height and vertical centering are removed. Both faces size to their content, preserving flip dimensions without forcing excessive blank space. The semester column is 36px and the marker column is 14px, bringing course names 26px farther left than in the previous version. Course titles use the full source text with natural wrapping; no ellipsis or line clamp is applied.
+
+Pathway backs show up to five course highlights in chronological order: each course is one point on a vertical timeline, semester on the left, name and optional code/units on the right. Same-term courses keep their original order; unknown terms remain visibly unknown and sort last. The connecting line communicates time, as specifically requested by the user. Highlights and semesters are synthetic fixtures, not a verified transcript or ranking of important courses. The flip uses a native button, supports Enter/Space, and hides the inactive face from assistive technology. Both faces share one grid area so the card keeps its dimensions. Animation respects reduced-motion preferences. Hovering and keyboard focus do not flip cards. Course rows are informational; the detail link is the only navigation control on each face. The bottom-right Courses/Back cues are removed.
+
+Card shading and diagonal textures have been removed at the user's request. All cards retain white surfaces and gray outlines; career text supplies the red emphasis.
+
+Current students are distinguished by a pale red year label (Freshman through Fifth-year), with no preceding dot, additional card fill or texture. Alumni retain plain Class of year text. The shared standing component keeps this treatment consistent on search cards, Course Detail student cards and pathway headers; only the pathway detail header adds the current student's supplied Class of year.
+
+`src/results-state.js` handles token matching, deterministic ranking, filtering, sorting, and URL state without DOM dependencies. All query tokens must occur across primary fields or searchable metadata. Primary-field matches rank above metadata matches. No semantic recommendation model, matching percentage, backend search, account system, or persistence beyond local search history is claimed.
+
+All results are scoped by `university.id`; university identity and example terms remain in `src/config.js`. Replacing fixtures with real data requires a data source, verified schema, and an asynchronous search adapter. Request cancellation, stale-response protection, and server pagination belong to that integration rather than this local catalog prototype.
+
+## Filters and layout
+
+- Pathways: student status and graduation within 5 or 10 years. The year cutoff is inclusive and calculated from the current year. Only alumni with known, non-future graduation years qualify. Sort by relevance, newest/oldest graduation, or major name; unknown/current graduation records sort after known alumni dates.
+- Courses: department, undergraduate/graduate level, and units up to 6 / 7–9 / 10+. Sort by relevance, course number, title, or ascending units.
+- Filter combinations use AND. Empty matches and empty filtered subsets have distinct feedback. Clearing filters preserves the query and sorting. All controls support keyboard operation; Escape dismisses filters.
+- Equal-width grid, 3–5 columns on wide desktops, 2 at intermediate widths, 1 on narrow screens. Breakpoints leave room for the semester column and the full detail-link label.
+- Show 15 results initially, then 15 more per Show more action. Filtering and sorting reset that display limit. Newly added cards receive focus when Show more is used.
+- White surfaces, gray shadows/outlines, no divider rules or marketing copy. Selection in Search retains #F4EFF0 fill, #7A1F2B text, and a #D9D9D9 1px border.
+
+## Notes authorization
+
+The user explicitly requested additions to four pending sections of `preliminary.md`: special cases and acceptance criteria for Search and Search Results. All assistant-authored additions in that file are enclosed in `【】`; surrounding user text is preserved. AGENTS.md records this distinction for future authorized note edits. No other note is edited.
+
+## Run and validate
+
+Node.js 20+; no package installation or external dependencies are needed. Run `npm run dev` in this repository and open `http://127.0.0.1:4173/`. The loopback server serves only application assets, never notes or Git data. Query-based routes work without server rewrites.
+
+Run `npm test` for history, validation, matching, university isolation, filter boundaries, deterministic sorting and URL-state tests. `npm run check` syntax-checks every application JavaScript module. Browser QA covers navigation, history, filters, sorting, pagination, detail links, no-match states, and responsive layouts. README.md remains at its original content.
+
+Verified: 13 tests pass and 10 JavaScript files pass syntax checks. Browser checks covered same-tab Enter/button submission, in-place filters preserving unsubmitted input, combined-filter empty state and reset, sorting, refresh restoration, Show more focus, new-tab detail placeholder, back-to-home clearing, course-mode switching, no-match feedback, invalid query/detail URLs, and card comparison. Viewports at 375, 768, 1024, 1440, and 1800 CSS pixels had no horizontal overflow; the mobile filter panel stayed within the viewport. No console warnings/errors appeared during the normal flows. Network failure recovery is implemented but was not fault-injected in this local browser check.
+
+Current implementation: 42 tests pass and 25 JavaScript files pass syntax checks. Pathway Detail exposes Timeline and By year, with Connection preserved for later work. Navigation supports the GitHub Pages project path. Detail-page checks cover notes and note labels, aligned year rows, timeline markers, anchored previews, student cards and flips, program switching and pagination. See the detail-page documents for scope and data boundaries.

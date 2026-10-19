@@ -1,19 +1,24 @@
 import { university } from './config.js';
 import { createSearchHistory, validateQuery } from './search-state.js';
+import { readResultsState, resultsUrl } from './results-state.js';
+import { appUrl } from './routing.js';
 
 const byId = id => document.getElementById(id);
 const input = byId('search-input');
 const form = byId('search-form');
 const panel = byId('history-panel');
-const summary = byId('search-summary');
 const error = byId('search-error');
-let mode = 'pathways';
+const routeParams = new URLSearchParams(window.location.search);
+const resultsState = readResultsState(routeParams);
+const view = routeParams.get('view');
+const isResults = view === 'results' && resultsState.valid;
+let mode = resultsState.mode;
 let composing = false;
 let storage;
 try { storage = window.localStorage; } catch { storage = null; }
 const history = createSearchHistory(storage, university.id);
 const suggestionsByMode = new Map();
-const suggestionCount = 4;
+const suggestionCount = 3;
 let selectedSuggestion = null;
 
 const icons = {
@@ -57,13 +62,17 @@ function clearSuggestionSelection() {
   selectedSuggestion = null;
   updateSuggestionSelection();
 }
+function setSuggestionsVisible(visible) {
+  byId('suggestions-content').hidden = !visible;
+  byId('suggestions-toggle').setAttribute('aria-expanded', String(visible));
+  byId('suggestions-toggle').textContent = visible ? 'Hide suggestions' : 'Show suggestions';
+}
 function fillSearch(query, fromSuggestion = false) {
   input.value = query;
   selectedSuggestion = fromSuggestion ? { mode, query } : null;
   updateSuggestionSelection();
   clearError();
   updateClear();
-  summary.hidden = true;
   input.focus();
   closeHistory();
 }
@@ -130,6 +139,7 @@ function renderExamples(refresh = false) {
     button.addEventListener('click', () => fillSearch(query, true));
     examples.append(button);
   });
+  examples.scrollLeft = 0;
   updateSuggestionSelection();
 }
 
@@ -150,10 +160,14 @@ byId('mode-toggle').addEventListener('click', () => {
   mode = mode === 'pathways' ? 'courses' : 'pathways';
   clearSuggestionSelection();
   clearError();
-  summary.hidden = true;
   renderMode();
   closeHistory();
   announce(`Searching ${mode}.`);
+  if (isResults && validateQuery(input.value).ok) form.requestSubmit();
+});
+byId('suggestions-toggle').addEventListener('click', () => {
+  closeHistory();
+  setSuggestionsVisible(byId('suggestions-content').hidden);
 });
 byId('refresh-examples').addEventListener('click', () => {
   closeHistory();
@@ -163,7 +177,7 @@ byId('refresh-examples').addEventListener('click', () => {
 });
 input.addEventListener('focus', openHistory);
 input.addEventListener('click', () => { if (panel.hidden) openHistory(); });
-input.addEventListener('input', () => { clearSuggestionSelection(); clearError(); updateClear(); summary.hidden = true; });
+input.addEventListener('input', () => { clearSuggestionSelection(); clearError(); updateClear(); });
 input.addEventListener('compositionstart', () => { composing = true; });
 input.addEventListener('compositionend', () => { composing = false; });
 input.addEventListener('keydown', event => {
@@ -199,7 +213,6 @@ byId('clear-input').addEventListener('click', () => {
   clearSuggestionSelection();
   updateClear();
   clearError();
-  summary.hidden = true;
   input.focus();
 });
 
@@ -220,28 +233,7 @@ form.addEventListener('submit', event => {
   clearError();
   input.value = result.query;
   history.add(mode, result.query);
-  renderHistory();
-  byId('summary-query').textContent = result.query;
-  byId('summary-mode').textContent = university.searchModes[mode].name;
-  byId('summary-description').textContent = history.persistent
-    ? 'Search saved. Results not available yet.'
-    : 'Saved for this session. Results not available yet.';
-  summary.hidden = false;
-  summary.tabIndex = -1;
-  summary.focus({ preventScroll: true });
-  if (window.matchMedia('(max-width: 700px)').matches) summary.scrollIntoView({ block: 'nearest', behavior: 'instant' });
-  updateClear();
-  announce(`Search submitted: ${result.query}. Searching ${mode} at ${university.name}.`);
-});
-
-byId('back-to-search').addEventListener('click', () => {
-  summary.hidden = true;
-  input.value = '';
-  clearSuggestionSelection();
-  clearError();
-  updateClear();
-  input.focus();
-  announce('Back to search. Your previous search is in recent searches.');
+  window.location.assign(resultsUrl({ mode, query: result.query, tone: resultsState.tone }));
 });
 window.addEventListener('storage', event => {
   if (event.key === history.key || event.key === null) {
@@ -251,14 +243,54 @@ window.addEventListener('storage', event => {
 });
 window.addEventListener('pageshow', event => {
   if (event.persisted) {
-    input.value = '';
+    input.value = isResults ? resultsState.query : '';
     clearSuggestionSelection();
-    summary.hidden = true;
     clearError();
     updateClear();
     closeHistory();
+    setSuggestionsVisible(false);
   }
 });
-input.value = '';
+input.value = isResults ? resultsState.query : '';
 renderMode();
 updateClear();
+
+if (isResults) {
+  document.body.classList.add('is-results');
+  document.title = `${resultsState.query} · Course Pathways`;
+  byId('page-heading').textContent = 'Search results';
+  document.querySelector('.examples').hidden = true;
+  byId('results-region').hidden = false;
+  document.querySelector('.wordmark').href = appUrl({ mode });
+  import('./results-view.js').then(({ mountResults }) => mountResults(resultsState)).catch(() => {
+    byId('results-region').setAttribute('aria-busy', 'false');
+    byId('results-count').textContent = 'Results unavailable. Refresh to try again.';
+  });
+} else if (view === 'detail' || view === 'cohort-designs' || view === 'card-designs') {
+  document.querySelector('.search-section').hidden = true;
+  document.querySelector('.skip-link').href = '#main-content';
+  document.querySelector('.skip-link').textContent = 'Skip to content';
+  if (view === 'detail') {
+    byId('detail-preview').hidden = false;
+    document.title = 'Detail preview · Course Pathways';
+    import('./results-view.js').then(({ mountDetail }) => mountDetail(routeParams)).catch(() => {
+      const region = byId('detail-preview');
+      const heading = document.createElement('h1'); heading.textContent = 'Couldn’t load details';
+      const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'text-button'; retry.textContent = 'Try again';
+      retry.addEventListener('click', () => window.location.reload());
+      const back = document.createElement('a'); back.href = appUrl(); back.className = 'text-button'; back.textContent = 'Back to search';
+      region.replaceChildren(heading, retry, back);
+      region.setAttribute('aria-busy', 'false');
+    });
+  } else {
+    byId('card-designs').hidden = false;
+    document.title = 'Card preview · Course Pathways';
+    import('./card-designs.js').then(({ mountCardDesigns }) => mountCardDesigns()).catch(() => {
+      byId('card-designs').textContent = 'Couldn’t load preview. Refresh to try again.';
+    });
+  }
+} else if (view === 'results') {
+  error.textContent = validateQuery(routeParams.get('q')).error;
+  error.hidden = false;
+  input.setAttribute('aria-invalid', 'true');
+}

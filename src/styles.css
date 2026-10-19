@@ -53,9 +53,13 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .search-submit svg { width: 22px; height: 22px; }
 .search-submit:hover { background: var(--brand-dark); }
 .search-submit:active { transform: scale(.96); }
-.examples { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; margin-top: 14px; }
-.example-buttons { display: contents; }
-.example-button { flex: 0 1 auto; min-width: 0; max-width: 100%; min-height: 46px; padding: 12px 18px; border: 1px solid #d9d9d9; border-radius: 8px; background: var(--surface); color: #424242; font-size: 13px; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; box-shadow: 0 1px 2px #00000005; transition: background 160ms, border-color 160ms, box-shadow 160ms, color 160ms, transform 160ms; }
+.examples { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; margin-top: 14px; }
+.suggestions-toggle { flex: none; width: 108px; min-height: 46px; padding: 6px 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 12px; text-align: left; white-space: nowrap; }
+.suggestions-toggle:hover { color: var(--brand); }
+.suggestions-content { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px; }
+.example-buttons { display: flex; flex: 1; min-width: 0; flex-wrap: nowrap; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 6px 4px; margin: -6px -4px; scroll-padding-inline: 4px; }
+.example-buttons::-webkit-scrollbar { display: none; }
+.example-button { flex: none; min-height: 46px; padding: 12px 14px; border: 1px solid #d9d9d9; border-radius: 8px; background: var(--surface); color: #424242; font-size: 13px; font-weight: 400; line-height: 1.3; white-space: nowrap; box-shadow: 0 1px 2px #00000005; transition: background 160ms, border-color 160ms, box-shadow 160ms, color 160ms, transform 160ms; }
 .example-button:hover { border-color: #aaa; background: #f7f7f7; }
 .example-button[aria-pressed="true"] { border-color: var(--suggestion-selected-border); background: var(--suggestion-selected-bg); color: var(--suggestion-selected-text); box-shadow: none; }
 .example-button:active { transform: translateY(1px); }
@@ -77,18 +81,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
 .history-delete svg { width: 16px; height: 16px; }
 .history-empty { margin: 0; padding: 17px 12px 22px; font-size: 13px; color: var(--muted); }
 .search-error { margin: 10px 2px 0; color: var(--brand); font-size: 13px; }
-.search-summary { margin-top: 28px; padding: 24px; background: var(--soft); border-radius: 12px; }
-.search-summary:focus { outline: none; }
-.summary-topline { display: flex; align-items: center; gap: 8px; }
-.summary-check { width: 19px; height: 19px; display: grid; place-items: center; background: #1f4c4c0c; color: #1f4c4c; border-radius: 50%; font-size: 12px; }
-.summary-topline h2 { font-size: 13px; font-weight: 600; margin: 0; }
-.summary-mode { color: var(--brand); font-size: 12px; margin-left: auto; }
-.summary-query { margin: 18px 0 6px; font-size: 22px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
-.summary-campus { margin: 0; font-size: 12px; color: var(--muted); }
-.summary-bottom { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 18px; }
-.summary-bottom p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
-.summary-bottom button { min-height: 44px; border: 0; background: transparent; color: var(--brand); white-space: nowrap; font-size: 13px; font-weight: 600; padding: 10px 0; }
-.summary-bottom button:hover { color: var(--brand-dark); }
 .noscript-message { padding: 20px; background: #fff; text-align: center; }
 
 @media (max-width: 700px) {
@@ -107,13 +99,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline
   #search-input::placeholder { font-size: 14px; }
   .search-submit { width: 44px; height: 44px; }
   .clear-input { width: 28px; }
-  .examples { gap: 8px 6px; margin-top: 14px; }
-  .example-button { padding-inline: 14px; font-size: 13px; }
+  .examples { gap: 8px; margin-top: 14px; }
+  .example-button { padding-inline: 12px; font-size: 13px; }
   .history-panel { top: 72px; }
   .history-heading { padding-inline: 7px; }
   .history-heading > span { font-size: 10px; }
-  .search-summary { padding: 20px; }
-  .summary-bottom { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 @media (max-width: 360px) {
   .site-header { margin-inline: 16px; }

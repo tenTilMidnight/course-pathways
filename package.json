@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Course Pathways search page prototype",
+  "description": "Course Pathways search and results prototype",
   "scripts": {
     "dev": "node server.mjs",
     "start": "node server.mjs",
     "test": "node --test",
-    "check": "node --check server.mjs && node --check src/app.js && node --check src/config.js && node --check src/search-state.js"
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build-site.mjs"
   },
   "engines": { "node": ">=20" }
 }
