@@ -8,9 +8,12 @@ if (relative(root, output) !== 'dist' || !output.startsWith(root + sep)) throw n
 await rm(output, { recursive: true, force: true });
 await mkdir(resolve(output, 'src'), { recursive: true });
 const excluded = new Set(['course-graph-view.js', 'connection-routing.js']);
-const assets = (await readdir(resolve(root, 'src'))).filter(name => /\.(js|css|woff2)$/.test(name) && !excluded.has(name));
+const assets = (await readdir(resolve(root, 'src'))).filter(name => /\.(js|css|woff2)$/.test(name) && !excluded.has(name) && !name.startsWith('connection-experiment') && !name.startsWith('local-'));
 for (const name of assets) await copyFile(resolve(root, 'src', name), resolve(output, 'src', name));
 for (const name of ['index.html', 'favicon.svg']) await copyFile(resolve(root, name), resolve(output, name));
+const appPath = resolve(output, 'src/app.js');
+const appSource = await readFile(appPath, 'utf8');
+await writeFile(appPath, appSource.replace(/\/\/ LOCAL_EXPERIMENT_START[\s\S]*?\/\/ LOCAL_EXPERIMENT_END\r?\n/, ''));
 await writeFile(resolve(output, '.nojekyll'), '');
 // Fail before publishing if an imported local module is missing from the public artifact.
 for (const name of assets.filter(name => name.endsWith('.js'))) {
@@ -18,4 +21,4 @@ for (const name of assets.filter(name => name.endsWith('.js'))) {
   const imports = [...code.matchAll(/(?:from\s+|import\s*\(\s*)['"](.\/[^'"]+)['"]/g)];
   for (const [, path] of imports) await readFile(resolve(output, 'src', path));
 }
-console.log(`Built ${assets.length + 3} public assets in dist; notes, docs, tests and the deferred Connection view are excluded.`);
+console.log(`Built ${assets.length + 3} public assets in dist; personal reviews, notes, docs, tests and the standalone experiment are excluded.`);

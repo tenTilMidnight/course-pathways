@@ -1,6 +1,6 @@
-import { enrollments, orderedSemesters, termLabel } from './pathway-model.js';
+import { enrollments, orderedSemesters, termOrder } from './pathway-model.js';
 
-const rank = term => termLabel(term) === 'Term not shared' ? null : term.year * 4 + ({ Spring: 0, Summer: 1, Fall: 2, Winter: 3 })[term.season];
+const rank = termOrder;
 
 export function learningGraph(detail, requirementId = 'all') {
   const nodes = enrollments(detail);
@@ -8,7 +8,8 @@ export function learningGraph(detail, requirementId = 'all') {
   const edges = nodes.flatMap(course => [...new Set(course.supportingEnrollmentIds ?? [])].flatMap(id => {
     const source = byId.get(id);
     if (!source || rank(source.term) === null || rank(course.term) === null || rank(source.term) >= rank(course.term)) return [];
-    return [{ source: id, target: course.id }];
+    const evidence = course.supportingConnections?.find(edge => edge.source === id);
+    return [{ ...evidence, source: id, target: course.id }];
   }));
   const included = new Set(requirementId === 'all' ? nodes.map(node => node.id) : nodes.filter(node => node.requirementIds?.includes(requirementId)).map(node => node.id));
   let changed = true;

@@ -5,6 +5,39 @@ import { pathways, courses } from '../src/demo-catalog.js';
 
 const state = (overrides = {}) => ({ mode: 'pathways', query: 'Information Systems', filters: {}, sort: 'relevance', ...overrides });
 
+test('abbreviations match academic and career concepts, and multiple terms intersect', () => {
+  const ids = query => searchCatalog(pathways, state({ query }), 'cmu').items.map(row => row.id).sort();
+  assert.deepEqual(ids('IS'), ids('Information Systems'));
+  assert.deepEqual(ids('PM'), ids('Product Management'));
+  assert.deepEqual(ids('SWE'), ids('Software Engineering'));
+  const intersection = ids('IS').filter(id => ids('PM').includes(id));
+  assert.ok(intersection.length > 0 && intersection.length < ids('IS').length && intersection.length < ids('PM').length);
+  assert.deepEqual(ids('IS PM'), intersection);
+  assert.deepEqual(ids('pm is'), intersection);
+  assert.deepEqual(ids('Information Systems pM'), intersection);
+  assert.ok(matchScore({ major: 'Information Systems', role: 'Product Manager' }, 'pathways', 'IS PM') > 0);
+  assert.ok(matchScore({ role: 'Software Engineer' }, 'pathways', 'SWE') > 0);
+  assert.equal(matchScore({ major: 'Statistics', role: 'Designer' }, 'pathways', 'IS'), 0);
+  assert.equal(matchScore({ role: 'Project Manager' }, 'pathways', 'PM'), 0);
+  assert.equal(matchScore({ role: 'Development Manager' }, 'pathways', 'PM'), 0);
+});
+
+test('aliases preserve course numbers, filters, ranking, metadata and word boundaries', () => {
+  for (const [alias, phrase] of [['CS', 'Computer Science'], ['HCI', 'Human-Computer Interaction'], ['AI', 'Artificial Intelligence'], ['ML', 'Machine Learning'], ['DS', 'Data Science'], ['ECE', 'Electrical and Computer Engineering']]) {
+    assert.ok(matchScore({ major: phrase }, 'pathways', alias.toLowerCase()) > 0);
+  }
+  assert.ok(matchScore({ code: 'IS 210', title: 'Database Design' }, 'courses', 'is-210') > 0);
+  assert.equal(matchScore({ title: 'This isomorphic analysis' }, 'courses', 'IS'), 0);
+  const primary = { major: 'Information Systems', role: 'Product Management' };
+  const metadata = { major: 'Design', tags: ['Information Systems', 'Product Management'] };
+  assert.ok(matchScore(primary, 'pathways', 'IS PM') > matchScore(metadata, 'pathways', 'IS PM'));
+  assert.ok(matchScore({ minors: ['Computer Science'] }, 'pathways', 'CS') > 0);
+  const result = searchCatalog(courses, state({ mode: 'courses', query: 'CS ML', filters: { level: 'graduate' } }), 'cmu');
+  assert.ok(result.items.length > 0);
+  assert.ok(result.items.every(row => row.department === 'Computer Science' && row.level === 'graduate'));
+  assert.equal(readResultsState(new URLSearchParams('q=IS+PM')).query, 'IS PM');
+});
+
 test('matching uses every query token and ranks primary fields above keywords without inventing match percentages', () => {
   const primary = { major: 'Information Systems', role: 'Product Manager', tags: [] };
   const keyword = { major: 'Design', role: 'Designer', tags: ['Information Systems'] };

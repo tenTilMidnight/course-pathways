@@ -255,6 +255,27 @@ input.value = isResults ? resultsState.query : '';
 renderMode();
 updateClear();
 
+// LOCAL_EXPERIMENT_START
+if (view === 'pathway-review' || view === 'connection-review' || view === 'course-review') {
+  document.querySelector('.search-section').hidden = true;
+  document.querySelector('.skip-link').href = '#main-content';
+  document.querySelector('.skip-link').textContent = 'Skip to content';
+  byId('detail-preview').hidden = false;
+  import('./local-pathway-review.js').then(({ mountLocalReview }) => mountLocalReview(routeParams)).catch(error => {
+    console.error(error);
+    byId('detail-preview').textContent = 'Could not load the local pathway review. Refresh to try again.';
+    byId('detail-preview').setAttribute('aria-busy', 'false');
+  });
+} else if (view === 'connection-experiment') {
+  document.querySelector('.search-section').hidden = true;
+  document.querySelector('.skip-link').href = '#main-content';
+  document.querySelector('.skip-link').textContent = 'Skip to content';
+  byId('detail-preview').hidden = false;
+  import('./connection-experiment.js').then(({ mountConnectionExperiment }) => mountConnectionExperiment(routeParams)).catch(() => {
+    byId('detail-preview').textContent = 'Could not load connection experiment.';
+  });
+} else
+// LOCAL_EXPERIMENT_END
 if (isResults) {
   document.body.classList.add('is-results');
   document.title = `${resultsState.query} · Course Pathways`;

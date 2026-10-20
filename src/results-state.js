@@ -1,5 +1,6 @@
 import { normalizeQuery, validateQuery } from './search-state.js';
 import { appUrl } from './routing.js';
+import { SEARCH_ALIASES } from './search-aliases.js';
 
 export const PAGE_SIZE = 15;
 export const FILTERS = {
@@ -50,11 +51,22 @@ export function matchScore(record, mode, query) {
   if (!phrase) return 0;
   const primaryFields = (mode === 'pathways' ? [record.major, record.role] : [record.code, record.title]).map(searchText);
   const primary = primaryFields.join(' ');
-  const secondary = searchText([record.department, record.company, ...(record.concentrations ?? []), ...(record.additionalMajors ?? []), ...(record.dualDegrees ?? []), ...(record.minors ?? []), ...(record.tags ?? []), ...(record.keywords ?? [])].join(' '));
+  const secondaryFields = [record.department, record.company, ...(record.concentrations ?? []), ...(record.additionalMajors ?? []), ...(record.dualDegrees ?? []), ...(record.minors ?? []), ...(record.tags ?? []), ...(record.keywords ?? [])].map(searchText);
   const tokens = [...new Set(phrase.split(' '))];
-  if (!tokens.every(token => `${primary} ${secondary}`.includes(token))) return 0;
-  return (primaryFields.includes(phrase) ? 100 : primary.includes(phrase) ? 60 : 0)
-    + tokens.reduce((score, token) => score + (primary.includes(token) ? 10 : 2), 0);
+  const alternatives = token => Object.hasOwn(SEARCH_ALIASES, token) ? [token, ...SEARCH_ALIASES[token]] : null;
+  const matches = (fields, token) => {
+    const aliases = alternatives(token);
+    // A short alias is a whole term, never a substring of "design" or "analysis".
+    return fields.some(field => aliases
+      ? aliases.some(alias => ` ${field} `.includes(` ${alias} `))
+      : field.includes(token));
+  };
+  if (!tokens.every(token => matches(primaryFields, token) || matches(secondaryFields, token))) return 0;
+  const singleAlias = alternatives(phrase);
+  const exact = singleAlias ? primaryFields.some(field => singleAlias.includes(field)) : primaryFields.includes(phrase);
+  const phraseMatch = singleAlias ? matches(primaryFields, phrase) : primary.includes(phrase);
+  return (exact ? 100 : phraseMatch ? 60 : 0)
+    + tokens.reduce((score, token) => score + (matches(primaryFields, token) ? 10 : 2), 0);
 }
 
 export function searchCatalog(records, state, universityId, currentYear = new Date().getFullYear()) {

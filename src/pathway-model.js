@@ -1,17 +1,23 @@
-export const timeLayouts = [['alternating', 'Timeline'], ['years', 'By year']];
+export const timeLayouts = [['alternating', 'Timeline'], ['connections', 'Overview']];
 
-export function readPathwayView(params) {
-  return { timeLayout: timeLayouts.some(([key]) => key === params.get('timeLayout')) ? params.get('timeLayout') : 'alternating' };
+export function readPathwayView(params, layouts = timeLayouts) {
+  const requested = params.get('timeLayout') === 'years' ? 'connections' : params.get('timeLayout');
+  return { timeLayout: layouts.some(([key]) => key === requested) ? requested : 'alternating' };
 }
 
 export { safeReturnUrl } from './routing.js';
 
 const seasons = { Spring: 0, Summer: 1, Fall: 2, Winter: 3 };
+export function termOrder(term) {
+  if (term?.stage === 'transfer' && Number.isInteger(term.before?.year) && Object.hasOwn(seasons, term.before.season)) return term.before.year * 4 + seasons[term.before.season] - .5;
+  return Number.isInteger(term?.year) && Object.hasOwn(seasons, term.season) ? term.year * 4 + seasons[term.season] : null;
+}
 export function termLabel(term) {
+  if (term?.stage === 'transfer') return 'Freshman · Transfer credits';
   return Number.isInteger(term?.year) && Object.hasOwn(seasons, term.season) ? `${term.season} ${term.year}` : 'Term not shared';
 }
 export function orderedSemesters(detail) {
-  const order = item => termLabel(item.term) === 'Term not shared' ? Infinity : item.term.year * 4 + seasons[item.term.season];
+  const order = item => termOrder(item.term) ?? Infinity;
   return [...(detail.semesters ?? [])].sort((a, b) => order(a) - order(b));
 }
 export function enrollments(detail) {
@@ -35,7 +41,7 @@ export function requirementNames(detail, course) {
 export function requirementPaths(detail) {
   const rows = enrollments(detail);
   const byId = new Map(rows.map(course => [course.id, course]));
-  const order = course => termLabel(course.term) === 'Term not shared' ? null : course.term.year * 4 + seasons[course.term.season];
+  const order = course => termOrder(course.term);
   function tree(course, ancestors = new Set()) {
     const visited = new Set([...ancestors, course.id]);
     let incomplete = false;

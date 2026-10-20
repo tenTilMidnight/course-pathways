@@ -1,0 +1,66 @@
+.connection-experiment { width: min(92%, 1440px); margin: 24px auto 80px; }
+.connection-embedded { width: 100%; min-width: 0; }
+.connection-experiment .experiment-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 28px 0 26px; }
+.experiment-heading h1 { margin: 0 0 6px; font-size: 24px; font-weight: 550; }
+.experiment-heading p { margin: 0; color: #666; font-size: 13px; }
+.experiment-heading select { max-width: 50%; min-height: 44px; padding: 8px 12px; font: 13px var(--sans); border: 1px solid #ddd; border-radius: 7px; background: #fff; }
+.experiment-hint { margin: 0 0 26px; color: #666; font-size: 13px; }
+.experiment-controls { display: flex; align-items: center; gap: 20px; flex: none; }
+.experiment-controls button { min-height: 44px; }
+.connection-workspace { --focus-blur: 3.5px; --focus-opacity: .42; position: relative; min-height: 420px; isolation: isolate; overflow-anchor: none; }
+.connection-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 24px; transition: filter 240ms ease, opacity 240ms ease; }
+.connection-overview section { min-width: 0; }
+.connection-overview > section > h2 { font-size: 16px; font-weight: 600; margin: 0 0 12px; transition: opacity 260ms ease; }
+.connection-overview .is-active-semester h2 { color: var(--brand); }
+.has-connection .connection-overview { filter: blur(var(--focus-blur)); opacity: var(--focus-opacity); }
+.experiment-course { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 7px; width: 100%; padding: 12px; min-height: 88px; border: 1px solid transparent; border-radius: 9px; background: #fff; color: var(--ink); text-align: left; font: 14px var(--sans); line-height: 1.45; cursor: pointer; }
+.experiment-course-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: #666; font-size: 11px; }
+.experiment-course-top > span:last-child { white-space: nowrap; }
+.experiment-course-title { font-weight: 500; overflow-wrap: anywhere; }
+.experiment-course-term { color: #555; font-size: 11px; font-weight: 400; margin-top: auto; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.connection-overview .experiment-course { min-height: 76px; padding: 10px; margin-bottom: 4px; transition: background 240ms, border-color 240ms; }
+.connection-overview .is-origin { background: #f4eff0; border-color: #b58990; }
+.experiment-course:hover { background: #f6f6f6; }
+.experiment-course:active { background: #f0ebec; }
+.connection-focus { position: absolute; z-index: 2; isolation: isolate; left: 0; right: 0; min-width: 0; padding: 0 0 12px; border: 0; border-radius: 0; background: transparent; box-shadow: none; pointer-events: none; }
+/* A soft local veil keeps the original blurred semester grid behind the diagram. */
+.connection-focus::before { content: ''; position: absolute; z-index: -1; inset: -32px -12px -44px; background: #ffffff7a; mask-image: linear-gradient(to bottom, transparent, #000 32px, #000 calc(100% - 44px), transparent); pointer-events: none; }
+.connection-focus .experiment-course, .connection-focus .experiment-controls, .connection-map-scroll, .connection-course-details { pointer-events: auto; }
+.connection-focus-header { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 6px 4px; }
+.connection-map-scroll { max-width: 100%; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.connection-map-frame { position: relative; margin-inline: auto; }
+.connection-map { position: absolute; top: 0; left: 0; transform-origin: top left; }
+.connection-map .experiment-course, .connection-flight-course { border-color: #dedfe1; box-shadow: 0 2px 7px #20253008; }
+.connection-map .experiment-course { position: absolute; z-index: 2; justify-content: flex-start; min-height: 104px; padding: 10px; gap: 6px; }
+.connection-map .experiment-course.is-root, .connection-flight-course.is-root { border-color: #b58990; background: #f6f0f1; }
+.connection-map .experiment-course.is-root .experiment-course-title, .connection-flight-course.is-root .experiment-course-title { color: var(--brand); font-weight: 600; }
+.connection-expansion-cue { position: absolute; right: 14px; bottom: 12px; font-size: 18px; line-height: 1; color: var(--brand); }
+.connection-curves { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.connection-edge path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.connection-edge .curve-halo { stroke: #fff; stroke-width: 5; }
+.connection-edge .curve-line { stroke: var(--brand); stroke-width: 1.5; opacity: .72; }
+.connection-edge.is-emphasized .curve-line { opacity: 1; }
+.connection-course-details { position: absolute; z-index: 4; display: grid; gap: 16px; min-height: 210px; padding: 24px; align-content: start; align-items: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 12px; background: #fffffff5; box-shadow: 0 6px 24px #252c3614, 0 1px 4px #252c3608; }
+.connection-info-heading { font-size: 20px; font-weight: 600; line-height: 1.4; margin: 0; text-wrap: pretty; }
+.connection-description { margin: 0 0 8px; font-size: 16px; line-height: 1.7; white-space: pre-line; }
+.connection-course-copy .text-button { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
+.connection-selected-note { background: #f1f2f3; border-radius: 7px; padding: 12px; }
+.connection-selected-note h3 { font-size: 11px; font-weight: 550; color: #555; margin: 0 0 8px; }
+.connection-selected-note p { font-size: 15px; line-height: 1.7; margin: 0; }
+.connection-flight-layer { position: fixed; inset: 0; overflow: clip; z-index: 50; pointer-events: none; }
+.connection-flight-course { position: absolute; margin: 0; transform-origin: top left; pointer-events: auto; will-change: transform; }
+@media (max-width: 1000px) { .connection-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  .connection-experiment { width: calc(100% - 32px); margin-top: 10px; }
+  .connection-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+  .connection-experiment .experiment-heading { flex-wrap: wrap; gap: 16px; }
+  .experiment-heading select { max-width: 100%; width: 100%; }
+  .experiment-course { padding: 10px; }
+  .connection-focus { padding: 0 0 12px; }
+  .connection-focus-header { align-items: flex-start; gap: 8px; }
+  .experiment-controls { gap: 10px; }
+  .experiment-controls .text-button { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .connection-overview, .connection-overview h2, .connection-overview .experiment-course { transition: none; } }
+@media (prefers-contrast: more) { .connection-course-details { background: #fff; outline: 1px solid #555; } .connection-focus::before { background: #fff; mask-image: none; } }
+@media (prefers-reduced-transparency: reduce) { .has-connection .connection-overview { filter: none; } .connection-course-details { background: #fff; } .connection-focus::before { background: #fff; mask-image: none; } }

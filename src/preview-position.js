@@ -1,4 +1,12 @@
-// Place the compact preview beside its course, falling above/below on narrow screens.
+// Use the empty side of the timeline for reading; never narrow the text merely
+// to hold a fixed-size card. Small screens use the available viewport width.
+export function previewReadingWidth(anchor, viewport) {
+  const left = viewport.left ?? 0;
+  const sideSpace = Math.max(anchor.left - left - 24, left + viewport.width - anchor.right - 24);
+  return Math.min(760, sideSpace >= 320 ? sideSpace : viewport.width - 24);
+}
+
+// Place the reading preview beside its course, falling above/below on narrow screens.
 export function previewPosition(anchor, size, viewport) {
   const margin = 12, gap = 12;
   const left = viewport.left ?? 0, top = viewport.top ?? 0;

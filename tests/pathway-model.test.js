@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { orderedSemesters, enrollments, requirementGroups, readPathwayView, safeReturnUrl, termLabel, requirementPaths } from '../src/pathway-model.js';
+import { orderedSemesters, enrollments, requirementGroups, readPathwayView, safeReturnUrl, termLabel, requirementPaths, timeLayouts } from '../src/pathway-model.js';
 import { pathwayDetails } from '../src/pathway-data.js';
 import { pathways, courses } from '../src/demo-catalog.js';
 
@@ -26,10 +26,12 @@ test('requirement views preserve multiple mappings, unmapped coursework and empt
 });
 test('detail layouts fall back safely and return links cannot point outside recognized local routes', () => {
   assert.deepEqual(readPathwayView(new URLSearchParams('by=bad&timeLayout=bad&requirementLayout=bad')), { timeLayout: 'alternating' });
-  for (const legacy of ['timeLayout=connections', 'by=requirement&requirementLayout=matrix', 'timeLayout=rows', 'timeLayout=focus&semester=semester-4']) {
+  for (const legacy of ['by=requirement&requirementLayout=matrix', 'timeLayout=rows', 'timeLayout=focus&semester=semester-4']) {
     assert.deepEqual(readPathwayView(new URLSearchParams(legacy)), { timeLayout: 'alternating' });
   }
-  for (const layout of ['alternating', 'years']) assert.equal(readPathwayView(new URLSearchParams({ timeLayout: layout })).timeLayout, layout);
+  for (const layout of ['alternating', 'connections']) assert.equal(readPathwayView(new URLSearchParams({ timeLayout: layout })).timeLayout, layout);
+  assert.equal(readPathwayView(new URLSearchParams('timeLayout=years')).timeLayout, 'connections');
+  assert.deepEqual(timeLayouts, [['alternating', 'Timeline'], ['connections', 'Overview']]);
   for (const value of ['https://example.com', '//example.com', 'javascript:alert(1)', '/?view=bad', '/?view=results&q=']) assert.equal(safeReturnUrl(value), '/');
   const from = '/?view=results&mode=pathways&q=Information+Systems&tone=textured';
   assert.equal(safeReturnUrl(from), from);

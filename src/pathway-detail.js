@@ -4,21 +4,24 @@ import { pathwayDetails } from './pathway-data.js';
 import { academicDetails, careerText, careerLabel } from './card-model.js';
 import { element, createStanding } from './result-cards.js';
 import { timeLayouts, readPathwayView, safeReturnUrl, termLabel, orderedSemesters, enrollments } from './pathway-model.js';
-import { previewPosition } from './preview-position.js';
+import { previewPosition, previewReadingWidth } from './preview-position.js';
 import { appUrl } from './routing.js';
+import { courseDescription } from './course-description.js';
+import { appendCourseFacts } from './course-information.js';
+import { mountConnections } from './connections-view.js';
 
 function button(text, className, action) {
   const node = element('button', className, text); node.type = 'button'; node.addEventListener('click', action); return node;
 }
 function empty(text) { return element('p', 'detail-empty', text); }
 
-export function mountPathwayDetail(params) {
+export function mountPathwayDetail(params, options = {}) {
   const root = document.getElementById('detail-preview');
-  const profile = pathways.find(record => record.id === params.get('id') && record.universityId === university.id);
-  const detail = pathwayDetails.find(record => record.id === profile?.id && record.universityId === university.id);
-  const back = element('a', 'text-button detail-back', 'Back to search results'); back.href = safeReturnUrl(params.get('from'));
+  const profile = (options.profiles ?? pathways).find(record => record.id === params.get('id') && record.universityId === university.id);
+  const detail = (options.details ?? pathwayDetails).find(record => record.id === profile?.id && record.universityId === university.id);
+  const back = element('a', 'text-button detail-back', 'Back to search results'); back.href = options.backHref ?? safeReturnUrl(params.get('from'));
   if (back.href.endsWith('/')) back.textContent = 'Back to search';
-  else if (new URL(back.href).searchParams.get('mode') === 'courses' && new URL(back.href).searchParams.get('view') === 'detail') back.textContent = 'Back to course';
+  else if (new URL(back.href).searchParams.get('mode') === 'courses') back.textContent = 'Back to course';
   root.className = 'pathway-detail';
   root.replaceChildren(back);
   if (!profile || !detail) {
@@ -27,26 +30,29 @@ export function mountPathwayDetail(params) {
   }
   const major = profile.major?.trim() || 'Major not shared';
   document.title = `${major} · Pathway · Course Pathways`;
-  const state = readPathwayView(params);
+  const layouts = options.timeLayouts ?? timeLayouts;
+  const state = readPathwayView(params, layouts);
   const semesters = orderedSemesters(detail);
   const selectedSemester = semesters.find(item => item.id === params.get('semester'))?.id;
 
   const header = element('header', 'pathway-profile');
   const academic = element('div');
-  const meta = element('div', 'pathway-profile-meta'); meta.append(createStanding(profile));
+  const meta = element('div', 'pathway-profile-meta');
+  if (profile.displayName) meta.append(element('span', 'card-standing', profile.displayName));
+  meta.append(createStanding(profile));
   if (profile.status === 'current' && Number.isInteger(profile.graduationYear)) meta.append(element('span', 'card-standing', `Class of ${profile.graduationYear}`));
-  meta.append(element('span', 'demo-label', 'Demo data'));
+  meta.append(element('span', 'demo-label', options.dataLabel ?? 'Demo data'));
   academic.append(meta, element('h1', 'pathway-major', major));
   const academicList = element('ul', 'academic-details');
   academicDetails(profile).forEach(item => academicList.append(element('li', '', `${item.label} ${item.value}`)));
-  academic.append(element('p', 'pathway-role', `${careerLabel(profile) === 'Exploring' ? 'Exploring ' : ''}${careerText(profile)}`));
+  if (profile.role?.trim() || !options.hideMissingRole) academic.append(element('p', 'pathway-role', `${careerLabel(profile) === 'Exploring' ? 'Exploring ' : ''}${careerText(profile)}`));
   if (academicList.children.length) academic.append(academicList);
   header.append(academic); root.append(header);
 
   const toolbar = element('div', 'pathway-toolbar');
   const layoutToggle = element('div', 'pathway-layout-toggle');
   layoutToggle.setAttribute('role', 'group'); layoutToggle.setAttribute('aria-label', 'Semester layout');
-  const layoutButtons = timeLayouts.map(([value, text]) => {
+  const layoutButtons = layouts.map(([value, text]) => {
     const toggle = button(text, '', () => { state.timeLayout = value; render(); });
     toggle.setAttribute('aria-controls', 'pathway-content'); layoutToggle.append(toggle);
     return { value, toggle };
@@ -73,6 +79,7 @@ export function mountPathwayDetail(params) {
     const anchor = previewTrigger.getBoundingClientRect();
     if (anchor.bottom < bounds.top || anchor.top > bounds.top + bounds.height || anchor.right < bounds.left || anchor.left > bounds.left + bounds.width || !previewTrigger.isConnected) { closePreview(); return; }
     dialog.style.maxWidth = `${bounds.width - 24}px`; dialog.style.maxHeight = `${bounds.height - 24}px`;
+    dialog.style.width = `${previewReadingWidth(anchor, bounds)}px`;
     const rect = dialog.getBoundingClientRect();
     const position = previewPosition(anchor, rect, bounds);
     dialog.style.left = `${position.left}px`; dialog.style.top = `${position.top}px`;
@@ -94,7 +101,7 @@ export function mountPathwayDetail(params) {
   });
 
   function updateUrl() {
-    const next = new URLSearchParams({ view: 'detail', mode: 'pathways', id: profile.id });
+    const next = new URLSearchParams({ view: options.view ?? 'detail', mode: 'pathways', id: profile.id });
     const from = safeReturnUrl(params.get('from'));
     if (from !== appUrl()) next.set('from', from);
     if (state.timeLayout !== 'alternating') next.set('timeLayout', state.timeLayout);
@@ -108,9 +115,11 @@ export function mountPathwayDetail(params) {
     trigger.setAttribute('aria-expanded', 'true');
     const close = button('×', 'preview-close', () => closePreview(true)); close.setAttribute('aria-label', 'Close course preview');
     const heading = element('h2', '', course.title); heading.id = 'course-preview-title';
-    const courseMeta = element('p', 'preview-meta', [course.code, Number.isFinite(course.units) ? `${course.units} units` : null].filter(Boolean).join('  '));
+    const courseMeta = element('p', 'preview-meta', [course.code, Number.isFinite(course.units) ? `${course.units} ${course.units === 1 ? 'unit' : 'units'}` : null].filter(Boolean).join('  '));
     dialog.replaceChildren(close, courseMeta, heading, element('p', 'preview-term', termLabel(course.term)));
-    if (course.description) dialog.append(element('p', 'preview-description', course.description));
+    if (courseDescription(course)) dialog.append(element('p', 'preview-description', courseDescription(course)));
+    if (course.unitsNote) dialog.append(element('p', 'preview-term', course.unitsNote));
+    appendCourseFacts(dialog, course);
     if (course.note) {
       const note = element('section', 'preview-note');
       note.append(element('h3', '', 'Student note'), element('p', 'detail-course-note', course.note));
@@ -119,7 +128,7 @@ export function mountPathwayDetail(params) {
     if (course.courseId) {
       const link = element('a', 'preview-course-link', 'View course details ↗');
       const returnParams = new URLSearchParams(location.search); returnParams.delete('from');
-      link.href = appUrl({ view: 'detail', mode: 'courses', id: course.courseId, from: appUrl(returnParams) });
+      link.href = appUrl({ view: course.detailView ?? 'detail', mode: 'courses', id: course.courseId, from: appUrl(returnParams) });
       link.target = '_blank'; link.rel = 'noopener noreferrer'; link.setAttribute('aria-label', `View course details: ${course.title} (opens in a new tab)`); dialog.append(link);
     }
     if (!dialog.matches(':popover-open')) dialog.showPopover();
@@ -135,29 +144,22 @@ export function mountPathwayDetail(params) {
     [course.code, course.termPart].filter(Boolean).forEach(text => meta.append(element('span', '', text)));
     if (course.note && noteMode === 'label') meta.append(element('span', 'course-note-label', 'Has note'));
     top.append(meta);
-    if (Number.isFinite(course.units)) top.append(element('span', 'detail-course-units', `${course.units} units`));
+    if (Number.isFinite(course.units)) {
+      const units = element('span', 'detail-course-units', `${course.units} ${course.units === 1 ? 'unit' : 'units'}`);
+      if (course.unitsNote) units.title = course.unitsNote;
+      top.append(units);
+    }
     node.append(top, element('strong', 'detail-course-title', course.title));
     entry.append(node);
     return entry;
   }
-  function courseList(rows) {
-    const list = element('div', 'detail-course-list');
-    rows.forEach(row => list.append(courseButton(row)));
-    if (!rows.length) list.append(empty('No courses shared for this section.'));
-    return list;
-  }
   function semesterRows(semester) { return semester.courses.map(course => ({ ...course, term: semester.term, semesterId: semester.id })); }
-  function semesterCard(semester) {
-    const card = element('section', 'semester-card'); card.dataset.semester = semester.id;
-    card.classList.toggle('is-target-semester', semester.id === selectedSemester);
-    card.append(element('h2', '', termLabel(semester.term)), courseList(semesterRows(semester))); return card;
-  }
   function renderAlternating() {
     const timeline = element('div', 'detail-timeline');
     semesters.forEach(semester => {
       const stop = element('section', 'semester-stop'); stop.dataset.semester = semester.id;
       stop.classList.toggle('is-target-semester', semester.id === selectedSemester);
-      stop.append(element('h2', 'semester-title', termLabel(semester.term)));
+      stop.append(element('h2', 'semester-title', [semester.academicYearLabel, termLabel(semester.term)].filter(Boolean).join(' / ')));
       semesterRows(semester).forEach(course => {
         const row = element('div', 'timeline-course-row');
         const entry = courseButton(course, 'none'); row.append(entry);
@@ -173,35 +175,25 @@ export function mountPathwayDetail(params) {
     });
     return timeline;
   }
-  function renderYears() {
-    const years = new Map();
-    semesters.forEach(semester => {
-      const year = semester.term ? semester.term.year - (semester.term.season === 'Spring' ? 1 : 0) : null;
-      if (!years.has(year)) years.set(year, []); years.get(year).push(semester);
-    });
-    const wrapper = element('div', 'academic-years');
-    for (const [year, terms] of years) {
-      const section = element('section', 'academic-year'); section.append(element('h2', 'academic-year-title', year ? `${year}–${String(year + 1).slice(-2)}` : 'Year not shared'));
-      const columns = element('div', 'year-columns');
-      columns.style.setProperty('--year-course-rows', String(Math.max(1, ...terms.map(term => term.courses.length))));
-      terms.forEach(semester => columns.append(semesterCard(semester)));
-      section.append(columns); wrapper.append(section);
-    }
-    return wrapper;
-  }
-  let semesterFrame;
+  let semesterFrame, cleanupLayout;
   function render() {
     cancelAnimationFrame(semesterFrame);
     closePreview();
+    cleanupLayout?.(); cleanupLayout = null;
+    root.classList.toggle('is-overview', state.timeLayout === 'connections');
     layoutButtons.forEach(({ value, toggle }) => toggle.setAttribute('aria-pressed', String(value === state.timeLayout)));
-    content.replaceChildren(); updateUrl();
+    content.replaceChildren(); content.className = 'pathway-content'; updateUrl();
     content.setAttribute('aria-label', 'Coursework by semester');
     if (!enrollments(detail).length) { content.append(empty('No courses shared yet.')); return; }
-    content.append(state.timeLayout === 'alternating' ? renderAlternating() : renderYears());
-    if (selectedSemester) semesterFrame = requestAnimationFrame(() => {
+    if (state.timeLayout === 'connections') cleanupLayout = mountConnections(params, {
+      root: content, embedded: true, profiles: [profile], details: [options.connectionDetail ?? detail],
+      returnUrl: () => appUrl({ view: options.view ?? 'detail', mode: 'pathways', id: profile.id, timeLayout: 'connections' }),
+    });
+    else content.append(renderAlternating());
+    if (selectedSemester && state.timeLayout !== 'connections') semesterFrame = requestAnimationFrame(() => {
       content.querySelector(`[data-semester="${selectedSemester}"]`)?.scrollIntoView({ block: 'start' });
     });
-    document.getElementById('announcements').textContent = `Showing ${timeLayouts.find(([key]) => key === state.timeLayout)[1].toLowerCase()}.`;
+    document.getElementById('announcements').textContent = `Showing ${layouts.find(([key]) => key === state.timeLayout)[1].toLowerCase()}.`;
   }
   render(); root.setAttribute('aria-busy', 'false');
 }
