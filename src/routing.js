@@ -14,7 +14,7 @@ export function safeReturnUrl(value, fallback = basePath, base = basePath) {
     if (url.origin !== 'https://local.invalid' || ![base, '/'].includes(url.pathname)) return fallback;
     const view = url.searchParams.get('view');
     const recognized = view === 'results' && url.searchParams.get('q')?.trim()
-      || view === 'detail' && ((url.searchParams.get('mode') === 'pathways' && /^pathway-\d+$/.test(url.searchParams.get('id') ?? '')) || (url.searchParams.get('mode') === 'courses' && /^course-\d+$/.test(url.searchParams.get('id') ?? '')));
+      || view === 'detail' && ((url.searchParams.get('mode') === 'pathways' && /^(?:pathway-\d+|grace)$/.test(url.searchParams.get('id') ?? '')) || (url.searchParams.get('mode') === 'courses' && /^(?:course-\d+|cmu-\d{2}-\d{3})$/.test(url.searchParams.get('id') ?? '')));
     return recognized ? `${appUrl(url.searchParams, base)}${url.hash}` : fallback;
   } catch { return fallback; }
 }

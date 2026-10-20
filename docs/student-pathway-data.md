@@ -65,10 +65,10 @@ Requirement fulfillment 另外保存：适用的学位/目录版本、requiremen
 - 背景：Information Systems、concentration in AI Management、minor in Philosophy、Junior (Class of 2028)、Exploring Product Management。
 - Fall 2025：5 门；Spring 2026：6 门；Fall 2026：7 门，共 18 条修课记录。
 - CMU 从 Sophomore 开始：Fall 2025 / Spring 2026 为 Sophomore，Fall 2026 为 Junior。Connection 页新增 Freshman / Transfer credits 阶段，未出现的必要先修背景按本人指示假定由转学分覆盖。
-- 显示名 Grace 来自文件标识，待确认是否用作公开昵称；年级与职业方向已由本人确认，完成状态、实际 units、成绩和 notes 未填写。
+- 显示名 Grace 已在 2026-10-20 由本人明确要求随 pathway 公开；年级与职业方向已由本人确认，完成状态、实际 units、成绩和 notes 未填写。
 - 18 门课均匹配 CMU 官方课程页。简介使用官方逐字短摘录（标记 `official_excerpt`，截断时显示省略号），移除生成式概述。每门课保存独立来源 URL、核查日期、原文哈希；完整描述由 Course detail 中的官方来源链接提供。
 - 本地审阅页：`http://127.0.0.1:4175/?view=pathway-review&id=grace`。依次支持 Timeline / Overview 两种 layout；另有课程信息预览、来源与待确认事项、下载 JSON。
-- Overview 是所有 pathway 的第二个 layout，先按学期紧凑展示全部课程，再点击展开关系图。Grace 地址为 `http://127.0.0.1:4175/?view=pathway-review&id=grace&timeLayout=connections`；旧 `connection-review` 和 By year 地址均进入这个 layout。节点切换完整链条、浮动信息及模糊背景交互均保留，退出时清理动画、事件监听和尺寸监听。共享渲染模块可用于公开演示，Grace 的个人数据仍从公开构建中排除。
+- Overview 是所有 pathway 的第二个 layout，先按学期紧凑展示全部课程，再点击展开关系图。Grace 地址为 `http://127.0.0.1:4175/?view=pathway-review&id=grace&timeLayout=connections`；旧 `connection-review` 和 By year 地址均进入这个 layout。节点切换完整链条、浮动信息及模糊背景交互均保留，退出时清理动画、事件监听和尺寸监听。共享渲染模块用于公开演示；2026-10-20 后，Grace 明确批准的静态快照也加入公开构建，本地审阅模块继续排除。
 - 预览中的 View course details 始终打开站内详情，例如 `?view=course-review&mode=courses&id=cmu-15-122`。详情包含官方原文短摘录、官方来源、已查到的先修条件，以及 Grace 的 pathway 卡片；不混入演示课程数据。
 - `src/local-grace-data.js` 是当前可编辑数据源，`src/local-pathway-model.js` 是转换与匹配逻辑；前缀 `local-` 的模块和本地路由均从公开网站构建中排除。
 
@@ -78,7 +78,7 @@ Requirement fulfillment 另外保存：适用的学位/目录版本、requiremen
 2. 21-241 的实际 units。当前数学课程页列为 11；这不直接证明 Spring 2026 的实际修读 units。其他课也暂使用当前目录值。[CMU 数学课程目录](https://coursecatalog.web.cmu.edu/schools-colleges/melloncollegeofscience/departmentofmathematicalsciences/courses/)
 3. 过去课程是否完成，以及 Fall 2026 各门课的状态和 mini 信息。
 4. 是否愿意为几门关键课程添加一两句真实 note；尤其是「哪门前面的课帮助了它」。
-5. 对这份历史的公开范围与显示名如何填写。
+5. 已确认：Grace 名称、已提供的课程历史和 connections 可公开；其他个人字段需另行提供与确认。
 
 官方规则支持的早期记录匹配为 `15-122 → 17-313`、`15-122 → 07-280`、`21-241 → 07-280`。15-122 和 05-391 / 67-262 同在 Fall 2025，不画成“先上完再修”的箭头。[CMU SCS 目录](https://coursecatalog.web.cmu.edu/schools-colleges/schoolofcomputerscience/courses/)，[CMU IS 目录](https://coursecatalog.web.cmu.edu/schools-colleges/dietrichcollegeofhumanitiesandsocialsciences/informationsystems/courses/)
 
@@ -103,3 +103,7 @@ Requirement fulfillment 另外保存：适用的学位/目录版本、requiremen
 较短的先修分支向后对齐到其直接后续课程的前一列，减少跨列绕行。每条箭头有独立端口和线路，禁止重合或间距过小的平行线段，保留完整连接；课程卡片上的真实学期不随布局改变。
 
 资料初次查询日期为 2026-10-19；独立课程条目与描述于 2026-10-20 核查。课程目录标为 2026–2027；94-829 使用 Heinz 的官方课程页，该页未标适用学年。它们是补全参考，不冒充各历史学期的 syllabus 或注册记录。每门课的具体来源已在本地审阅页和下载数据中保留。[94-829 官方页面](https://www.heinz.cmu.edu/current-students/courses/94-829/)
+
+## Approved public pathway (2026-10-20)
+
+Grace explicitly requested publication of her pathway and courses, searchable through IS, PM and their intersection, temporarily ahead of demo records. The allowlisted `published-grace.js` snapshot contains the shared profile, 18 enrollments, three assumed transfer-background nodes, and official course references. Public routes use `view=detail`; the review UI and its pending questions, downloads and source-file metadata stay local. Personal notes and grades are not projected. This snapshot is regenerated manually with `node scripts/publish-grace.mjs`; later private review changes do not automatically become public.

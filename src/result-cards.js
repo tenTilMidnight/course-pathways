@@ -26,7 +26,7 @@ function detailLink(record, returnUrl) {
   link.href = appUrl({ view: 'detail', mode: 'pathways', id: record.id, from: returnUrl });
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
-  link.setAttribute('aria-label', `View full path: ${record.major}, ${careerText(record)} (opens in a new tab)`);
+  link.setAttribute('aria-label', `View full path: ${record.displayName ? record.displayName + ', ' : ''}${record.major}, ${careerText(record)} (opens in a new tab)`);
   const arrow = element('span', 'card-open');
   arrow.innerHTML = openArrow;
   link.append(arrow);
@@ -99,7 +99,7 @@ function attachFlip(card, front, record, returnUrl, instanceKey = record.id) {
     back.inert = !open;
     back.setAttribute('aria-hidden', String(!open));
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', `${open ? 'Flip back to profile' : 'Flip to course highlights'}: ${record.major}, ${careerText(record)}`);
+    toggle.setAttribute('aria-label', `${open ? 'Flip back to profile' : 'Flip to course highlights'}: ${record.displayName ? record.displayName + ', ' : ''}${record.major}, ${careerText(record)}`);
   }
   show(false);
   closeFlips.set(card, () => show(false));
@@ -112,7 +112,11 @@ export function createResultCard(record, mode, returnUrl = '/', options = {}) {
     const card = element('article', 'result-card pathway-card');
     const front = element('div', 'card-front');
     const header = element('div', 'card-header');
-    header.append(createStanding(record), detailLink(record, returnUrl));
+    const meta = element('div', 'card-student-meta');
+    if (record.displayName) meta.append(element('span', 'card-student-name', record.displayName));
+    meta.append(createStanding(record));
+    if (options.showDataSource && record.dataSource === 'demo') meta.append(element('span', 'demo-label', 'Demo'));
+    header.append(meta, detailLink(record, returnUrl));
     front.append(header, identity(record, options.cardStyle));
     attachFlip(card, front, record, returnUrl, options.instanceKey);
     return card;

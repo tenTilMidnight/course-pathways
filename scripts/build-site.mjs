@@ -21,4 +21,4 @@ for (const name of assets.filter(name => name.endsWith('.js'))) {
   const imports = [...code.matchAll(/(?:from\s+|import\s*\(\s*)['"](.\/[^'"]+)['"]/g)];
   for (const [, path] of imports) await readFile(resolve(output, 'src', path));
 }
-console.log(`Built ${assets.length + 3} public assets in dist; personal reviews, notes, docs, tests and the standalone experiment are excluded.`);
+console.log(`Built ${assets.length + 3} public assets in dist, including the approved Grace snapshot; private review modules, notes, docs, tests and the standalone experiment are excluded.`);

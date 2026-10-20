@@ -30,7 +30,8 @@ export async function mountResults(state) {
   }
   function renderCards(focusNew = false) {
     const previousCount = grid.children.length;
-    grid.replaceChildren(...filtered.slice(0, visible).map(record => createResultCard(record, state.mode, currentUrl(), state)));
+    const mixedSources = filtered.some(record => record.dataSource === 'student');
+    grid.replaceChildren(...filtered.slice(0, visible).map(record => createResultCard(record, state.mode, currentUrl(), { ...state, showDataSource: mixedSources })));
     previewHint(state.mode === 'pathways' ? grid.firstElementChild : null);
     byId('load-more').hidden = visible >= filtered.length;
     byId('results-progress').hidden = !filtered.length;
@@ -44,6 +45,7 @@ export async function mountResults(state) {
     const found = searchCatalog(records, state, university.id);
     filtered = found.items;
     total = found.total;
+    byId('results-data-label').hidden = filtered.some(record => record.dataSource === 'student');
     const active = Object.values(state.filters).filter(value => value !== 'all').length;
     byId('filter-count').textContent = active ? ` (${active})` : '';
     byId('reset-filters').hidden = !active;
@@ -53,7 +55,7 @@ export async function mountResults(state) {
     renderCards();
     if (!filtered.length) {
       if (total && active) setStatus('No results with these filters', 'Try removing a filter.', { label: 'Clear filters', run: resetFilters });
-      else setStatus('No matching results', 'Try a different major, role, course name, or keyword. This prototype searches demo records only.', {
+      else setStatus('No matching results', 'Try a different major, role, course name, or keyword.', {
         label: 'Edit search', run() { byId('search-input').focus(); byId('search-input').select(); },
       });
     }
@@ -91,7 +93,7 @@ export async function mountResults(state) {
     byId('results-controls').hidden = true;
     setStatus(`Loading ${state.mode}…`, '');
     try {
-      const catalog = await import('./demo-catalog.js');
+      const catalog = await import('./public-catalog.js');
       records = catalog[state.mode];
       if (!Array.isArray(records)) throw new Error('Invalid catalog');
       buildControls(); updateUrl(); render();
@@ -114,6 +116,11 @@ export async function mountResults(state) {
 }
 
 export async function mountDetail(params) {
+  if (params.get('id') === 'grace' && params.get('mode') === 'pathways'
+    || params.get('mode') === 'courses' && /^cmu-\d{2}-\d{3}$/.test(params.get('id') ?? '')) {
+    const { mountPublishedDetail } = await import('./published-detail.js');
+    await mountPublishedDetail(params); return;
+  }
   if (params.get('mode') === 'courses') {
     const { mountCourseDetail } = await import('./course-detail.js');
     mountCourseDetail(params);

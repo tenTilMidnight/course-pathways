@@ -41,7 +41,8 @@ export function mountPathwayDetail(params, options = {}) {
   if (profile.displayName) meta.append(element('span', 'card-standing', profile.displayName));
   meta.append(createStanding(profile));
   if (profile.status === 'current' && Number.isInteger(profile.graduationYear)) meta.append(element('span', 'card-standing', `Class of ${profile.graduationYear}`));
-  meta.append(element('span', 'demo-label', options.dataLabel ?? 'Demo data'));
+  const dataLabel = options.dataLabel === undefined ? 'Demo data' : options.dataLabel;
+  if (dataLabel) meta.append(element('span', 'demo-label', dataLabel));
   academic.append(meta, element('h1', 'pathway-major', major));
   const academicList = element('ul', 'academic-details');
   academicDetails(profile).forEach(item => academicList.append(element('li', '', `${item.label} ${item.value}`)));

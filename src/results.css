@@ -37,6 +37,8 @@
 .pathway-card:hover .card-front, .pathway-card:hover .card-back { border-color: #aaa; box-shadow: 0 5px 18px #00000007; }
 .card-back { transform: rotateY(180deg); }
 .card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.card-student-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.card-student-name { font-size: 14px; font-weight: 600; }
 .card-detail-link { position: relative; display: inline-flex; align-items: center; justify-content: flex-end; flex: none; gap: 5px; min-height: 44px; margin-right: -8px; padding: 0 8px; border-radius: 7px; color: var(--card-secondary, #606060); font-size: 11px; line-height: 1.4; text-decoration: none; white-space: nowrap; pointer-events: auto; }
 .card-detail-link .card-open { width: 18px; height: 18px; color: inherit; }
 .card-detail-link:hover { color: var(--brand); background: #00000005; }

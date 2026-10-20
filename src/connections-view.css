@@ -43,6 +43,7 @@
 .connection-course-details { position: absolute; z-index: 4; display: grid; gap: 16px; min-height: 210px; padding: 24px; align-content: start; align-items: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; border-radius: 12px; background: #fffffff5; box-shadow: 0 6px 24px #252c3614, 0 1px 4px #252c3608; }
 .connection-info-heading { font-size: 20px; font-weight: 600; line-height: 1.4; margin: 0; text-wrap: pretty; }
 .connection-description { margin: 0 0 8px; font-size: 16px; line-height: 1.7; white-space: pre-line; }
+.transfer-rule-list { padding: 0; list-style: none; font-size: 12px; line-height: 1.65; color: #666; display: grid; gap: 10px; }
 .connection-course-copy .text-button { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
 .connection-selected-note { background: #f1f2f3; border-radius: 7px; padding: 12px; }
 .connection-selected-note h3 { font-size: 11px; font-weight: 550; color: #555; margin: 0 0 8px; }

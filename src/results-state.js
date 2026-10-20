@@ -95,6 +95,12 @@ export function searchCatalog(records, state, universityId, currentYear = new Da
   const compareText = (a, b) => String(a ?? '').localeCompare(String(b ?? ''), 'en', { numeric: true });
   filtered.sort((a, b) => {
     let order = 0;
+    // Temporary featured placement applies only after matching and filtering.
+    // Explicit user-selected sorts keep their normal order.
+    if (sort === 'relevance') {
+      const priority = (b.record.searchPriority ?? 0) - (a.record.searchPriority ?? 0);
+      if (priority) return priority;
+    }
     if (sort === 'name') order = compareText(a.record.major ?? a.record.title, b.record.major ?? b.record.title);
     else if (sort === 'number') order = compareText(a.record.code, b.record.code);
     else if (sort === 'units') order = (a.record.units ?? Infinity) - (b.record.units ?? Infinity);
